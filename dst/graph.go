@@ -1,6 +1,7 @@
 package dst
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -14,6 +15,21 @@ type MGraph struct {
 // NumVex return mg's vertex num
 func (mg *MGraph) NumVex() int {
 	return len(mg.Vexs)
+}
+
+// Print print a mgraph
+func (mg *MGraph) Print() {
+	maxLen := len(fmt.Sprintf("%d", MaxInt))
+	format := fmt.Sprintf("%%%dd ", maxLen)
+	fmt.Println("")
+	for _, v := range mg.Arcs {
+		fmt.Printf("[")
+		for i := range v {
+			fmt.Printf(format, v[i])
+		}
+		fmt.Printf("\b]\n")
+	}
+	fmt.Println("")
 }
 
 // EdgeGraph 边集数组
