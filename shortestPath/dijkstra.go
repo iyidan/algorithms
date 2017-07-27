@@ -45,39 +45,36 @@ func DijkstraDst(mg *dst.MGraph, vx int, end int) {
 // Dijkstra 迪杰斯卡尔最短路径算法
 func Dijkstra(mg *dst.MGraph, vx int) *DijksRet {
 	numVex := mg.NumVex()
-
+	shortestPath := make([]int, numVex)
 	patharc := make([]int, numVex)
-	shortPathTable := make([]int, numVex)
-	final := make([]int, numVex)
-	k := 0
-
+	finded := make([]int, numVex)
 	for i := 0; i < numVex; i++ {
 		patharc[i] = -1
-		final[i] = 0
-		shortPathTable[i] = mg.Arcs[vx][i]
+		shortestPath[i] = mg.Arcs[vx][i]
+		finded[i] = -1
 	}
-	final[vx] = 1
-	shortPathTable[vx] = 0
+	shortestPath[vx] = 0
+	finded[vx] = 0
 
 	for i := 1; i < numVex; i++ {
 		min := dst.MaxInt
+		k := 0
 		for j := 0; j < numVex; j++ {
-			if final[j] == 0 && shortPathTable[j] < min {
+			if finded[j] == -1 && shortestPath[j] < min {
 				k = j
-				min = shortPathTable[j]
+				min = shortestPath[j]
 			}
 		}
-		final[k] = 1
+		finded[k] = 0
 		for j := 0; j < numVex; j++ {
-			if final[j] == 0 && (min+mg.Arcs[k][j]) < shortPathTable[j] {
-				shortPathTable[j] = min + mg.Arcs[k][j]
+			if finded[j] == -1 && (min+mg.Arcs[k][j]) < shortestPath[j] {
+				shortestPath[j] = min + mg.Arcs[k][j]
 				patharc[j] = k
 			}
 		}
 	}
-
 	return &DijksRet{
 		Path: patharc,
-		Cost: shortPathTable,
+		Cost: shortestPath,
 	}
 }

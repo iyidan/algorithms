@@ -26,33 +26,26 @@ import (
 // 这与prim每次生成最短边矛盾
 // 故假设不成立，得证.
 func PRIM(mg *dst.MGraph) {
-	var (
-		numVex       = mg.NumVex()
-		i, j, k, min int
-		adjvex       = make([]int, numVex)
-		lowcost      = make([]int, numVex)
-	)
-
-	lowcost[0] = 0
-	adjvex[0] = 0
-	for i = 1; i < numVex; i++ {
-		adjvex[i] = 0
+	numVex := mg.NumVex()
+	lowcost := make([]int, numVex)
+	adjvex := make([]int, numVex)
+	for i := 0; i < numVex; i++ {
 		lowcost[i] = mg.Arcs[0][i]
+		adjvex[i] = 0
 	}
-	for i = 1; i < numVex; i++ {
-		min = dst.MaxInt
-		j = 1
-		k = 0
-		for j < numVex {
+
+	for i := 1; i < numVex; i++ {
+		min := dst.MaxInt
+		k := 0
+		for j := 1; j < numVex; j++ {
 			if lowcost[j] != 0 && lowcost[j] < min {
 				min = lowcost[j]
 				k = j
 			}
-			j++
 		}
-		fmt.Printf("[PRIM]edge: (%s[%d], %s[%d])\n", mg.Vexs[adjvex[k]], adjvex[k], mg.Vexs[k], k)
 		lowcost[k] = 0
-		for j = 1; j < numVex; j++ {
+		fmt.Printf("[PRIM]edge: (%s[%d], %s[%d])\n", mg.Vexs[adjvex[k]], adjvex[k], mg.Vexs[k], k)
+		for j := 1; j < numVex; j++ {
 			if lowcost[j] != 0 && mg.Arcs[k][j] < lowcost[j] {
 				lowcost[j] = mg.Arcs[k][j]
 				adjvex[j] = k

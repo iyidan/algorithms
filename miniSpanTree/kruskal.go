@@ -21,16 +21,14 @@ import (
 // 而环中一定有一条权值大于这条边的边，用这条边将其替换掉，图仍旧保持连通，但总权值减小了。
 // 也就是说，如果不选取这条边，最后构成的生成树的总权值一定不会是最小的。
 func Kruskal(eg *dst.EdgeGraph) {
-	var i, n, m, cost int
-
-	parent := make([]int, len(eg.Vexs)) // parent已初始化
-
-	// sort
 	eg.SortEdge()
 
-	for i = 0; i < len(eg.Edges); i++ {
-		n = disjointSetFind(parent, eg.Edges[i].Begin)
-		m = disjointSetFind(parent, eg.Edges[i].End)
+	parent := make([]int, len(eg.Vexs))
+	cost := 0
+
+	for i := 0; i < len(eg.Edges); i++ {
+		n := disjointSetFind(parent, eg.Edges[i].Begin)
+		m := disjointSetFind(parent, eg.Edges[i].End)
 		if n != m {
 			parent[n] = m
 			fmt.Printf("[kruskal](%s[%d], %s[%d])\n", eg.Vexs[eg.Edges[i].Begin], eg.Edges[i].Begin,
