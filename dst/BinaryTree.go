@@ -1,5 +1,12 @@
 package dst
 
+import (
+	"bytes"
+	"fmt"
+	"math"
+	"strings"
+)
+
 // BTSortDataer 可排序的数据定义
 type BTSortDataer interface {
 	Equal(data BTSortDataer) bool
@@ -47,6 +54,7 @@ func (btd BTDInt) Compare(b BTSortDataer) int {
 // BTNode 二叉树节点
 type BTNode struct {
 	Data   BTSortDataer
+	bf     int // 平衡因子（balance factor） AVL树用到
 	Lchild *BTNode
 	Rchild *BTNode
 }
@@ -98,6 +106,113 @@ func (T *BTNode) LevelOrderPrint() []BTSortDataer {
 		}
 	}
 	return ret
+}
+
+type prettyPrintQNode struct {
+	level int
+	node  *BTNode
+}
+
+func prettyprintInternal(buf *bytes.Buffer, nodes []*BTNode, level, maxLevel, datalen int) {
+	if level > maxLevel {
+		return
+	}
+
+	floor := float64(maxLevel - level)
+	endgeLines := int(math.Pow(2, math.Max(float64(floor-1), 0)))
+	firstSpaces := int(math.Pow(2, float64(floor))) - 1
+	betweenSpaces := int(math.Pow(2, float64(floor+1))) - 1
+
+	//length := float64(datalen)
+	// endgeLines := int(((math.Pow(2, floor)-1)*(length+sp) + 1) / 2)
+	// firstSpaces := int(((math.Pow(2, floor)-1)*(length+sp) + 1))
+	// betweenSpaces := int(((math.Pow(2, floor+2)-1)*(length+sp)+1)/2) - int(datalen) + 1
+	// fmt.Println("-----------------------")
+	// fmt.Println("nodes:", prettyprintGetNodesDataString(nodes), "maxLevel:", maxLevel)
+	// fmt.Println("floor:", floor)
+	// fmt.Println("endgeLines:", endgeLines)
+	// fmt.Println("firstSpaces:", firstSpaces)
+	// fmt.Println("betweenSpaces:", betweenSpaces)
+	// fmt.Println("-----------------------")
+
+	var newNodes []*BTNode
+
+	prettyprintWriteSpaces(buf, firstSpaces)
+
+	for _, node := range nodes {
+		if node == nil {
+			newNodes = append(newNodes, nil)
+			newNodes = append(newNodes, nil)
+			prettyprintWriteSpaces(buf, datalen)
+		} else {
+			nodeStr := fmt.Sprintf("%v", node.Data)
+			buf.WriteString(nodeStr)
+			newNodes = append(newNodes, node.Lchild)
+			newNodes = append(newNodes, node.Rchild)
+		}
+		prettyprintWriteSpaces(buf, betweenSpaces)
+	}
+
+	buf.WriteString("\n")
+	for i := 1; i <= endgeLines; i++ {
+		for j := 0; j < len(nodes); j++ {
+			prettyprintWriteSpaces(buf, firstSpaces-i)
+			if nodes[j] == nil {
+				prettyprintWriteSpaces(buf, endgeLines+endgeLines+i)
+				continue
+			}
+			if nodes[j].Lchild != nil {
+				buf.WriteString("/")
+			} else {
+				prettyprintWriteSpaces(buf, 1)
+			}
+			prettyprintWriteSpaces(buf, 2*i-1)
+			if nodes[j].Rchild != nil {
+				buf.WriteString("\\")
+			} else {
+				prettyprintWriteSpaces(buf, 1)
+			}
+			prettyprintWriteSpaces(buf, endgeLines+endgeLines-i)
+		}
+		buf.WriteString("\n")
+	}
+
+	// fmt.Println("re---------------------")
+	// fmt.Printf("%s", buf.String())
+	// fmt.Println("-----------------------")
+	prettyprintInternal(buf, newNodes, level+1, maxLevel, datalen)
+}
+
+func prettyprintGetNodesDataString(nodes []*BTNode) string {
+	ret := []string{"["}
+	for _, v := range nodes {
+		if v == nil {
+			ret = append(ret, "<nil>")
+		} else {
+			ret = append(ret, fmt.Sprintf("%v", v.Data))
+		}
+	}
+	ret = append(ret, "]")
+	return strings.Join(ret, " ")
+}
+
+func prettyprintWriteSpaces(buf *bytes.Buffer, n int) {
+	if n <= 0 {
+		return
+	}
+	buf.Write(bytes.Repeat([]byte{' '}, n))
+}
+
+// PrettyPrint 按层序遍历打印，每行一层
+func (T *BTNode) PrettyPrint() string {
+	if T == nil {
+		return "<nil-tree>"
+	}
+	var buf bytes.Buffer
+
+	prettyprintInternal(&buf, []*BTNode{T}, 1, T.GetLayers(), 1)
+
+	return buf.String()
 }
 
 // -----------------------------------
@@ -226,4 +341,17 @@ func (T *BTNode) PostOrderPrint() []BTSortDataer {
 	ret = append(ret, T.Data)
 
 	return ret
+}
+
+//GetLayers 获取二叉树的层数
+func (T *BTNode) GetLayers() int {
+	if T == nil {
+		return 0
+	}
+	leftLayers := 1 + T.Lchild.GetLayers()
+	rightLayers := 1 + T.Rchild.GetLayers()
+	if leftLayers > rightLayers {
+		return leftLayers
+	}
+	return rightLayers
 }

@@ -96,3 +96,28 @@ func TestBTOrderPrint(t *testing.T) {
 	t.Log("NRPostOrderPrint ok", ret)
 
 }
+
+func TestGetLayers(t *testing.T) {
+	n := testTree.GetLayers()
+	if n != 4 {
+		t.Fatal("testTree layers != 4")
+	}
+}
+
+func TestPrettyPrint(t *testing.T) {
+
+	data := []int{50, 20, 70, 10, 40, 60, 80, 5, 15, 35, 45, 55, 65, 75, 85, 78, 90, 86}
+	tree := &BTNode{Data: BTDInt(data[0])}
+	for i := 1; i < len(data); i++ {
+		tree.BSTInsert(BTDInt(data[i]))
+	}
+	t.Logf("\n%s\n", tree.PrettyPrint())
+
+	// tree = &BTNode{Data: BTDInt(data[0])}
+	// rander := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// for i := 0; i < 10; i++ {
+	// 	tree.BSTInsert(BTDInt(80 + rander.Intn(15)))
+	// }
+
+	// t.Logf("\n%s\n", tree.PrettyPrint())
+}
