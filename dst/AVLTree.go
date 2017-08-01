@@ -75,7 +75,7 @@ func AVLLeftBalance(T **BTNode) {
 	}
 }
 
-// AVLRightBalance 对T进行以T为根的最小不平衡二叉树做左平衡旋转(右孩子)
+// AVLRightBalance 对T进行以T为根的最小不平衡二叉树做右平衡旋转(右孩子)
 func AVLRightBalance(T **BTNode) {
 	R := (*T).Rchild
 	switch R.bf {
@@ -164,4 +164,120 @@ func AVLInsert(T **BTNode, data BTSortDataer) (bool, bool) {
 	}
 
 	return taller, ok
+}
+
+// AVLDelete 从avl中删除一个节点,
+// 第一个返回值标示子树高度有没有变化
+// 第二个返回值标示有没有删除
+func AVLDelete(T **BTNode, data BTSortDataer) (bool, bool) {
+	if *T == nil {
+		return false, false
+	}
+
+	var changed, ok bool
+	oldbf := (*T).bf
+
+	switch (*T).Data.Compare(data) {
+
+	// 当前节点就是要删除的节点
+	case 0:
+		if (*T).Lchild == nil || (*T).Rchild == nil { // 只有一个孩子
+			tmp := *T
+			if (*T).Rchild == nil {
+				*T = (*T).Lchild
+				tmp.Lchild = nil
+			} else {
+				*T = (*T).Rchild
+				tmp.Rchild = nil
+			}
+			return true, true
+		}
+		// 有两个孩子
+		// 找到后继
+		after := &(*T).Rchild
+		for (*after).Lchild != nil {
+			after = &(*after).Lchild
+		}
+		(*T).Data = (*after).Data
+		changed, ok = AVLDelete(&(*T).Rchild, (*after).Data)
+		if changed {
+			(*T).bf++
+		}
+
+	// 左子树
+	case 1:
+		changed, ok = AVLDelete(&(*T).Lchild, data)
+		if !ok {
+			return false, false
+		}
+		if changed {
+			(*T).bf--
+		}
+
+	// 右子树
+	case -1:
+		changed, ok = AVLDelete(&(*T).Rchild, data)
+		if !ok {
+			return false, false
+		}
+		if changed {
+			(*T).bf++
+		}
+	}
+
+	if (*T).bf > 1 || (*T).bf < -1 {
+		// 四种情形
+		if (*T).bf > 1 && (*T).Lchild.bf >= 0 { // 左-左
+			(*T).bf = (*T).bf - 1 - (*T).Lchild.bf
+			(*T).Lchild.bf--
+			AVLRotateRight(T)
+		} else if (*T).bf > 1 && (*T).Lchild.bf < 0 { // 左-右
+			if (*T).Lchild.Rchild.bf >= 0 {
+				(*T).Lchild.bf++
+			} else {
+				(*T).Lchild.bf += 2
+			}
+			(*T).Lchild.Rchild.bf += 1 + intabs((*T).Lchild.bf)
+			AVLRotateLeft(&(*T).Lchild)
+			(*T).bf = (*T).bf - 1 - (*T).Lchild.bf
+			(*T).Lchild.bf = (*T).Lchild.bf - 1 - intabs((*T).bf)
+			AVLRotateRight(T)
+		} else if (*T).bf < -1 && (*T).Rchild.bf <= 0 { // 右-右
+			(*T).bf = (*T).bf + 1 - (*T).Rchild.bf
+			(*T).Rchild.bf++
+			AVLRotateLeft(T)
+		} else if (*T).bf < -1 && (*T).Rchild.bf > 0 { // 右-左
+			if (*T).Rchild.Lchild.bf <= 0 {
+				(*T).Rchild.bf--
+			} else {
+				(*T).Rchild.bf -= 2
+			}
+			(*T).Rchild.Lchild.bf = (*T).Rchild.Lchild.bf - 1 - intabs((*T).Rchild.bf)
+			AVLRotateRight(&(*T).Rchild)
+			(*T).bf = (*T).bf + 1 - (*T).Rchild.bf
+			(*T).Rchild.bf = (*T).Rchild.bf + 1 + intabs((*T).bf)
+			AVLRotateLeft(T)
+		}
+		if (*T).bf != 0 {
+			changed = false
+		} else {
+			changed = true
+		}
+		return changed, true
+	}
+
+	if oldbf != 0 && changed {
+		changed = true
+	} else {
+		changed = false
+	}
+
+	return changed, ok
+}
+
+func intabs(a int) int {
+	if a < 0 {
+		return -a
+	}
+	return a
 }

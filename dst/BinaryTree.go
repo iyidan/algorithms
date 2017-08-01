@@ -118,15 +118,17 @@ func prettyprintInternal(buf *bytes.Buffer, nodes []*BTNode, level, maxLevel, da
 		return
 	}
 
-	floor := float64(maxLevel - level)
-	endgeLines := int(math.Pow(2, math.Max(float64(floor-1), 0)))
-	firstSpaces := int(math.Pow(2, float64(floor))) - 1
-	betweenSpaces := int(math.Pow(2, float64(floor+1))) - 1
+	// floor := float64(maxLevel - level)
+	// endgeLines := int(math.Pow(2, math.Max(float64(floor-1), 0)))
+	// firstSpaces := int(math.Pow(2, float64(floor))) - datalen
+	// betweenSpaces := int(math.Pow(2, float64(floor+1))) - datalen
 
-	//length := float64(datalen)
-	// endgeLines := int(((math.Pow(2, floor)-1)*(length+sp) + 1) / 2)
-	// firstSpaces := int(((math.Pow(2, floor)-1)*(length+sp) + 1))
-	// betweenSpaces := int(((math.Pow(2, floor+2)-1)*(length+sp)+1)/2) - int(datalen) + 1
+	sp := float64(1)
+	floor := float64(maxLevel - level)
+	length := float64(datalen)
+	endgeLines := int(((math.Pow(2, floor)-1)*(length+sp) + 1) / 2)
+	firstSpaces := int(((math.Pow(2, floor)-1)*(length+sp) + 1))
+	//betweenSpaces := int(((math.Pow(2, floor+2)-1)*(length+sp)+1)/2) - int(datalen) + 1
 	// fmt.Println("-----------------------")
 	// fmt.Println("nodes:", prettyprintGetNodesDataString(nodes), "maxLevel:", maxLevel)
 	// fmt.Println("floor:", floor)
@@ -143,14 +145,16 @@ func prettyprintInternal(buf *bytes.Buffer, nodes []*BTNode, level, maxLevel, da
 		if node == nil {
 			newNodes = append(newNodes, nil)
 			newNodes = append(newNodes, nil)
-			prettyprintWriteSpaces(buf, datalen)
+			prettyprintWriteSpaces(buf, datalen+3)
+			//buf.WriteString("<nil>")
 		} else {
-			nodeStr := fmt.Sprintf("%v", node.Data)
+			//nodeStr := fmt.Sprintf("%v", node.Data)
+			nodeStr := fmt.Sprintf("%v(%d)", node.Data, node.bf)
 			buf.WriteString(nodeStr)
 			newNodes = append(newNodes, node.Lchild)
 			newNodes = append(newNodes, node.Rchild)
 		}
-		prettyprintWriteSpaces(buf, betweenSpaces)
+		prettyprintWriteSpaces(buf, endgeLines*4)
 	}
 
 	buf.WriteString("\n")
@@ -158,7 +162,7 @@ func prettyprintInternal(buf *bytes.Buffer, nodes []*BTNode, level, maxLevel, da
 		for j := 0; j < len(nodes); j++ {
 			prettyprintWriteSpaces(buf, firstSpaces-i)
 			if nodes[j] == nil {
-				prettyprintWriteSpaces(buf, endgeLines+endgeLines+i)
+				prettyprintWriteSpaces(buf, endgeLines+endgeLines+i+datalen)
 				continue
 			}
 			if nodes[j].Lchild != nil {
@@ -166,13 +170,13 @@ func prettyprintInternal(buf *bytes.Buffer, nodes []*BTNode, level, maxLevel, da
 			} else {
 				prettyprintWriteSpaces(buf, 1)
 			}
-			prettyprintWriteSpaces(buf, 2*i-1)
+			prettyprintWriteSpaces(buf, 2*i-1+datalen)
 			if nodes[j].Rchild != nil {
 				buf.WriteString("\\")
 			} else {
 				prettyprintWriteSpaces(buf, 1)
 			}
-			prettyprintWriteSpaces(buf, endgeLines+endgeLines-i)
+			prettyprintWriteSpaces(buf, endgeLines+endgeLines-i+datalen)
 		}
 		buf.WriteString("\n")
 	}
@@ -210,7 +214,15 @@ func (T *BTNode) PrettyPrint() string {
 	}
 	var buf bytes.Buffer
 
-	prettyprintInternal(&buf, []*BTNode{T}, 1, T.GetLayers(), 1)
+	maxLen := 1
+	datas := T.NRMidOrderPrint()
+	for _, v := range datas {
+		l := len(fmt.Sprintf("%v", v))
+		if l > maxLen {
+			maxLen = l
+		}
+	}
+	prettyprintInternal(&buf, []*BTNode{T}, 1, T.GetLayers(), maxLen)
 
 	return buf.String()
 }
