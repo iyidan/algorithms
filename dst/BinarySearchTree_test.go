@@ -12,27 +12,6 @@ var (
 	//   3     8
 	//    \   /
 	//     5 7
-	testBSTree = &BTNode{
-		Data: BTDInt(10),
-		Lchild: &BTNode{
-			Data: BTDInt(6),
-			Lchild: &BTNode{
-				Data: BTDInt(3),
-				Rchild: &BTNode{
-					Data: BTDInt(5),
-				},
-			},
-			Rchild: &BTNode{
-				Data: BTDInt(8),
-				Lchild: &BTNode{
-					Data: BTDInt(7),
-				},
-			},
-		},
-		Rchild: &BTNode{
-			Data: BTDInt(18),
-		},
-	}
 	sortedList      = []BTSortDataer{BTDInt(3), BTDInt(5), BTDInt(6), BTDInt(7), BTDInt(8), BTDInt(10), BTDInt(18)}
 	sortedListDel7  = []BTSortDataer{BTDInt(3), BTDInt(5), BTDInt(6), BTDInt(8), BTDInt(10), BTDInt(18)}
 	sortedListDel5  = []BTSortDataer{BTDInt(3), BTDInt(6), BTDInt(7), BTDInt(8), BTDInt(10), BTDInt(18)}
@@ -42,6 +21,7 @@ var (
 	sortedListDel8  = []BTSortDataer{BTDInt(3), BTDInt(5), BTDInt(6), BTDInt(7), BTDInt(10), BTDInt(18)}
 
 	noSortList = []BTSortDataer{BTDInt(10), BTDInt(6), BTDInt(18), BTDInt(3), BTDInt(8), BTDInt(5), BTDInt(7)}
+	testBSTree = MakeBSTree(noSortList)
 )
 
 func TestBSTSearch(t *testing.T) {
@@ -90,6 +70,7 @@ func TestBSTDelete(t *testing.T) {
 
 	bst := MakeBSTree(noSortList)
 	t.Log("origin:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	// 删除不存在的节点
 	delNode := bst.BSTDelete(BTDInt(MaxInt))
@@ -111,6 +92,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel7)`)
 	}
 	t.Log("del7:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -122,6 +104,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel5)`)
 	}
 	t.Log("del5:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -134,6 +117,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel6)`)
 	}
 	t.Log("del6:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -146,6 +130,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel3)`)
 	}
 	t.Log("del3:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -157,6 +142,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel8)`)
 	}
 	t.Log("del8:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -169,4 +155,5 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel10)`)
 	}
 	t.Log("del10:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 }

@@ -27,10 +27,17 @@ func resetNodes() {
 func TestAVLRotate(t *testing.T) {
 	resetNodes()
 	nodeRoot.Lchild = nodeP
+	nodeP.Parent = nodeRoot
+
 	nodeP.Lchild = nodeL
+	nodeP.Rchild = nodePr
+	nodeL.Parent = nodeP
+	nodePr.Parent = nodeP
+
 	nodeL.Lchild = nodeLl
 	nodeL.Rchild = nodeLr
-	nodeP.Rchild = nodePr
+	nodeLl.Parent = nodeL
+	nodeLr.Parent = nodeL
 
 	oriStr := nodeRoot.PrettyPrint()
 
@@ -50,22 +57,27 @@ func TestAVLRotate(t *testing.T) {
 }
 
 func TestAVLInsert(t *testing.T) {
-	var avlT *BTNode
 	datas := []int{3, 2, 1, 4, 5, 6, 7, 10, 9, 8}
+	oPre := []int{4, 2, 1, 3, 7, 6, 5, 9, 8, 10}
+	oMid := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	avlT := MakeAVLTreeByInt(datas)
 
-	for i := range datas {
-		AVLInsert(&avlT, BTDInt(datas[i]))
+	var tmp []int
+	avlT.NRPreOrder(func(node *BTNode) {
+		tmp = append(tmp, int(node.Data.(BTDInt)))
+	})
+	if !reflect.DeepEqual(tmp, oPre) {
+		t.Fatal("pre order fail, tmp:, correct:,", tmp, oPre)
+	}
+	tmp = tmp[0:0]
+	avlT.NRMidOrder(func(node *BTNode) {
+		tmp = append(tmp, int(node.Data.(BTDInt)))
+	})
+	if !reflect.DeepEqual(tmp, oMid) {
+		t.Fatal("middle order fail, tmp:, correct:,", tmp, oMid)
 	}
 
 	t.Logf("\n%s\n", avlT.PrettyPrint())
-}
-
-func genDeleteAVLTree(datas []int) *BTNode {
-	var avlT *BTNode
-	for i := range datas {
-		AVLInsert(&avlT, BTDInt(datas[i]))
-	}
-	return avlT
 }
 
 type avldelTestCase struct {
@@ -121,7 +133,7 @@ func TestAVLDelete(t *testing.T) {
 	for k, v := range avlDelCases {
 		t.Logf("test-%s:\n", k)
 
-		avlT := genDeleteAVLTree(v.Data)
+		avlT := MakeAVLTreeByInt(v.Data)
 		t.Logf("b:\n%s\n", avlT.PrettyPrint())
 
 		AVLDelete(&avlT, BTDInt(v.DelData))
@@ -140,7 +152,7 @@ func TestAVLDelete(t *testing.T) {
 	var randcase []int
 	for k := 0; k < 2000; k++ {
 		for j := 0; j < 200+k; j++ {
-			tmp := rand.Intn(2000)
+			tmp := rand.Intn(MaxInt)
 			found := false
 			for _, v := range randcase {
 				if v == tmp {
@@ -152,7 +164,7 @@ func TestAVLDelete(t *testing.T) {
 				randcase = append(randcase, tmp)
 			}
 		}
-		avlT := genDeleteAVLTree(randcase)
+		avlT := MakeAVLTreeByInt(randcase)
 
 		//t.Logf("rand-avt:%v, %v\n", avlT.MidOrderPrint(), avlT.LevelOrderPrint())
 		//t.Logf("\n%s\n", avlT.PrettyPrint())

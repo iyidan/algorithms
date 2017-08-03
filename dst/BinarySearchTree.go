@@ -48,8 +48,10 @@ func (bst *BTNode) BSTInsert(data BTSortDataer) bool {
 	}
 	if parent.Data.Compare(data) == 1 {
 		parent.Lchild = &BTNode{Data: data}
+		parent.Lchild.Parent = parent
 	} else {
 		parent.Rchild = &BTNode{Data: data}
+		parent.Rchild.Parent = parent
 	}
 	return true
 }
@@ -66,35 +68,43 @@ func (bst *BTNode) BSTDelete(data BTSortDataer) *BTNode {
 	}
 
 	// 如果节点只有左孩子或者只有右孩子，子承父业
-	if node.Lchild == nil {
+	if node.Lchild == nil || node.Rchild == nil {
+		tmp := node.Lchild
+		if tmp == nil {
+			tmp = node.Rchild
+		}
+		if tmp != nil {
+			tmp.Parent = parent
+		}
 		if parent.Lchild == node {
-			parent.Lchild = node.Rchild
+			parent.Lchild = tmp
 		} else {
-			parent.Rchild = node.Rchild
+			parent.Rchild = tmp
 		}
-	} else if node.Rchild == nil {
-		if parent.Lchild == node {
-			parent.Lchild = node.Lchild
-		} else {
-			parent.Rchild = node.Lchild
-		}
-	} else { // 如果两个孩子都有，找到node的直接前驱
-		parentPrevNode := node
-		preNode := node.Lchild
-		for preNode.Rchild != nil { // 此时prevNode只有左孩子，并且是node的前驱
-			parentPrevNode = preNode
-			preNode = preNode.Rchild
-		}
-		node.Data = preNode.Data    // 用preNode的值来代替node的值
-		if parentPrevNode == node { // 如果前驱直接是node的左孩子，则将node的左孩子替换为前驱的左孩子
-			node.Lchild = preNode.Lchild
-		} else { // 如果前驱不是node的左孩子（隔着很多层）
-			parentPrevNode.Rchild = preNode.Lchild
-		}
-
-		preNode.Lchild = nil
-		return preNode
+		FreeNode(node)
+		return node
 	}
 
-	return node
+	// 如果两个孩子都有，找到node的直接前驱
+	prevNodeParent := node
+	preNode := node.Lchild
+	for preNode.Rchild != nil { // 此时prevNode只有左孩子，并且是node的前驱
+		prevNodeParent = preNode
+		preNode = preNode.Rchild
+	}
+	node.Data = preNode.Data    // 用preNode的值来代替node的值
+	if prevNodeParent == node { // 如果前驱直接是node的左孩子，则将node的左孩子替换为前驱的左孩子
+		if preNode.Lchild != nil {
+			preNode.Lchild.Parent = node
+		}
+		node.Lchild = preNode.Lchild
+	} else { // 如果前驱不是node的左孩子（隔着很多层）
+		if preNode.Lchild != nil {
+			preNode.Lchild.Parent = prevNodeParent
+		}
+		prevNodeParent.Rchild = preNode.Lchild
+	}
+
+	FreeNode(preNode)
+	return preNode
 }

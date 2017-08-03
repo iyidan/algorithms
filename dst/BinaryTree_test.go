@@ -1,6 +1,7 @@
 package dst
 
 import (
+	"math"
 	"reflect"
 	"testing"
 )
@@ -106,10 +107,19 @@ func TestGetLayers(t *testing.T) {
 
 func TestPrettyPrint(t *testing.T) {
 
-	data := []int{50, 20, 70, 10, 40, 60, 80, 5, 15, 35, 45, 55, 65, 75, 85, 78, 90, 86}
+	if intPow(2, -1) != 0 {
+		t.Fatal(`intPow(2, -1) != 0`)
+	}
+	for i := 0; i < 30; i++ {
+		if intPow(2, i) != int(math.Pow(2, float64(i))) {
+			t.Fatal(`intPow(2, i) fail:`, i, intPow(2, i), int(math.Pow(2, float64(i))))
+		}
+	}
+
+	data := []int{50, 20, 70, 10, 40, 60, 5, 61, 62, 63}
 	tree := &BTNode{Data: BTDInt(data[0])}
 	for i := 1; i < len(data); i++ {
-		tree.BSTInsert(BTDInt(data[i]))
+		AVLInsert(&tree, BTDInt(data[i]))
 	}
 	t.Logf("\n%s\n", tree.PrettyPrint())
 

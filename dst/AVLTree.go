@@ -1,5 +1,23 @@
 package dst
 
+// MakeAVLTree 制造一棵avl树，用给定的数据
+func MakeAVLTree(datas []BTSortDataer) *BTNode {
+	avlT := &BTNode{Data: datas[0], bf: 0, Parent: nil}
+	for i := 1; i < len(datas); i++ {
+		AVLInsert(&avlT, datas[i])
+	}
+	return avlT
+}
+
+// MakeAVLTreeByInt 制造一棵avl树 用给定的int数组
+func MakeAVLTreeByInt(datas []int) *BTNode {
+	avlT := &BTNode{Data: BTDInt(datas[0]), bf: 0, Parent: nil}
+	for i := 1; i < len(datas); i++ {
+		AVLInsert(&avlT, BTDInt(datas[i]))
+	}
+	return avlT
+}
+
 // AVLRotateRight 右旋P节点
 // 将P节点的左孩子变成L的右孩子
 // 将L的右孩子变为P
@@ -18,6 +36,14 @@ func AVLRotateRight(p **BTNode) {
 		return
 	}
 	L := (*p).Lchild
+
+	// 维护parent指针
+	L.Parent = (*p).Parent
+	(*p).Parent = L
+	if L.Rchild != nil {
+		L.Rchild.Parent = *p
+	}
+
 	(*p).Lchild = L.Rchild
 	L.Rchild = *p
 	*p = L
@@ -41,6 +67,14 @@ func AVLRotateLeft(p **BTNode) {
 		return
 	}
 	R := (*p).Rchild
+
+	// 维护parent指针
+	R.Parent = (*p).Parent
+	(*p).Parent = R
+	if R.Lchild != nil {
+		R.Lchild.Parent = *p
+	}
+
 	(*p).Rchild = R.Lchild
 	R.Lchild = *p
 	*p = R
@@ -108,11 +142,9 @@ func AVLRightBalance(T **BTNode) {
 // 第一个返回值代表有没有长高，第二个返回值代表有没有插入
 func AVLInsert(T **BTNode, data BTSortDataer) (bool, bool) {
 
-	// 插入新节点，树长高（注意是递归调用，此时的T有可能是树中的某个孩子
+	// 插入新节点，如果空树就报错，因为没法确定parent指针
 	if *T == nil {
-		*T = &BTNode{Data: data}
-		(*T).bf = 0
-		return true, true
+		panic("avl tree is nil")
 	}
 
 	var taller, ok bool
@@ -123,7 +155,14 @@ func AVLInsert(T **BTNode, data BTSortDataer) (bool, bool) {
 		return false, false
 	// 插入到T的左边，此处是一直递归到顶层
 	case 1:
-		taller, ok = AVLInsert(&(*T).Lchild, data)
+		if (*T).Lchild == nil {
+			(*T).Lchild = &BTNode{Data: data, bf: 0, Parent: *T}
+			taller = true
+			ok = true
+		} else {
+			taller, ok = AVLInsert(&(*T).Lchild, data)
+		}
+
 		if !ok { // 如果没有插入ok，直接返回
 			return taller, ok
 		}
@@ -143,7 +182,14 @@ func AVLInsert(T **BTNode, data BTSortDataer) (bool, bool) {
 		}
 	// 插入到T的右边，此处是一直递归到顶层
 	case -1:
-		taller, ok = AVLInsert(&(*T).Rchild, data)
+		if (*T).Rchild == nil {
+			(*T).Rchild = &BTNode{Data: data, bf: 0, Parent: *T}
+			taller = true
+			ok = true
+		} else {
+			taller, ok = AVLInsert(&(*T).Rchild, data)
+		}
+
 		if !ok { // 如果没有插入ok，直接返回
 			return taller, ok
 		}
@@ -185,11 +231,13 @@ func AVLDelete(T **BTNode, data BTSortDataer) (bool, bool) {
 			tmp := *T
 			if (*T).Rchild == nil {
 				*T = (*T).Lchild
-				tmp.Lchild = nil
 			} else {
 				*T = (*T).Rchild
-				tmp.Rchild = nil
 			}
+			if *T != nil {
+				(*T).Parent = tmp.Parent
+			}
+			FreeNode(tmp)
 			return true, true
 		}
 		// 有两个孩子
@@ -273,11 +321,4 @@ func AVLDelete(T **BTNode, data BTSortDataer) (bool, bool) {
 	}
 
 	return changed, ok
-}
-
-func intabs(a int) int {
-	if a < 0 {
-		return -a
-	}
-	return a
 }
