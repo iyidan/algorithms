@@ -6,56 +6,6 @@ import (
 	"testing"
 )
 
-var (
-	nodeRoot = &BTNode{Data: BTDStr("R")}
-	nodeP    = &BTNode{Data: BTDStr("P")}
-	nodePr   = &BTNode{Data: BTDStr("pr")}
-	nodeL    = &BTNode{Data: BTDStr("L")}
-	nodeLl   = &BTNode{Data: BTDStr("lr")}
-	nodeLr   = &BTNode{Data: BTDStr("ll")}
-
-	nodes = []*BTNode{nodeRoot, nodeP, nodePr, nodeL, nodeLl, nodeLr}
-)
-
-func resetNodes() {
-	for k := range nodes {
-		nodes[k].Lchild = nil
-		nodes[k].Rchild = nil
-	}
-}
-
-func TestAVLRotate(t *testing.T) {
-	resetNodes()
-	nodeRoot.Lchild = nodeP
-	nodeP.Parent = nodeRoot
-
-	nodeP.Lchild = nodeL
-	nodeP.Rchild = nodePr
-	nodeL.Parent = nodeP
-	nodePr.Parent = nodeP
-
-	nodeL.Lchild = nodeLl
-	nodeL.Rchild = nodeLr
-	nodeLl.Parent = nodeL
-	nodeLr.Parent = nodeL
-
-	oriStr := nodeRoot.PrettyPrint()
-
-	t.Logf("origin:\n%s\n", nodeRoot.PrettyPrint())
-
-	AVLRotateRight(&nodeRoot.Lchild)
-
-	t.Logf("rotate-right:\n%s\n", nodeRoot.PrettyPrint())
-
-	AVLRotateLeft(&nodeRoot.Lchild)
-
-	t.Logf("rotate-left:\n%s\n", nodeRoot.PrettyPrint())
-
-	if oriStr != nodeRoot.PrettyPrint() {
-		t.Fatal("rotate to origin failed")
-	}
-}
-
 func TestAVLInsert(t *testing.T) {
 	datas := []int{3, 2, 1, 4, 5, 6, 7, 10, 9, 8}
 	oPre := []int{4, 2, 1, 3, 7, 6, 5, 9, 8, 10}
@@ -63,21 +13,57 @@ func TestAVLInsert(t *testing.T) {
 	avlT := MakeAVLTreeByInt(datas)
 
 	var tmp []int
-	avlT.NRPreOrder(func(node *BTNode) {
+	avlT.NRPreOrder(func(node *BTNode) bool {
 		tmp = append(tmp, int(node.Data.(BTDInt)))
+		return true
 	})
 	if !reflect.DeepEqual(tmp, oPre) {
 		t.Fatal("pre order fail, tmp:, correct:,", tmp, oPre)
 	}
 	tmp = tmp[0:0]
-	avlT.NRMidOrder(func(node *BTNode) {
+	avlT.NRMidOrder(func(node *BTNode) bool {
 		tmp = append(tmp, int(node.Data.(BTDInt)))
+		return true
 	})
 	if !reflect.DeepEqual(tmp, oMid) {
 		t.Fatal("middle order fail, tmp:, correct:,", tmp, oMid)
 	}
+	if err := CheckAVLTree(avlT); err != nil {
+		t.Fatal(err)
+	}
+	avlT.root.Lchild.bf = 3
+	if err := CheckAVLTree(avlT); err == nil {
+		t.Fatal(`CheckAVLTree bad avltree is ok`)
+	} else {
+		t.Log(err)
+	}
+	// t.Logf("\n%s\n", avlT.PrettyPrint())
 
-	t.Logf("\n%s\n", avlT.PrettyPrint())
+	// randcases
+	sortedCase := make([]int, 0, 200)
+	randCase := make([]int, 200)
+	for i := 0; i < 200; i++ {
+		sortedCase = append(sortedCase, i*2)
+	}
+	copy(randCase, sortedCase)
+	for i := 0; i < 1000; i++ {
+		ShuffleSliceInt(randCase)
+		avlT = MakeAVLTreeByInt(randCase)
+		if err := CheckAVLTree(avlT); err != nil {
+			t.Fatal(err)
+		}
+		idx := 0
+		avlT.NRMidOrder(func(node *BTNode) bool {
+			d := int(node.Data.(BTDInt))
+			if d != sortedCase[idx] {
+				t.Fatalf("randCase fail: d=%d, sortedCase[%d]=%d, node=%v\n", d, idx, sortedCase[idx], node)
+				return false
+			}
+			idx++
+			return true
+		})
+	}
+
 }
 
 type avldelTestCase struct {
@@ -131,13 +117,13 @@ var (
 func TestAVLDelete(t *testing.T) {
 
 	for k, v := range avlDelCases {
-		t.Logf("test-%s:\n", k)
+		// t.Logf("test-%s:\n", k)
 
 		avlT := MakeAVLTreeByInt(v.Data)
-		t.Logf("b:\n%s\n", avlT.PrettyPrint())
+		// t.Logf("b:\n%s\n", avlT.PrettyPrint())
 
-		AVLDelete(&avlT, BTDInt(v.DelData))
-		t.Logf("a:\n%s\n", avlT.PrettyPrint())
+		avlT.AVLDelete(BTDInt(v.DelData))
+		// t.Logf("a:\n%s\n", avlT.PrettyPrint())
 
 		opre := avlT.PreOrderPrint()
 		if !reflect.DeepEqual(opre, v.PreOrder) {
@@ -147,11 +133,15 @@ func TestAVLDelete(t *testing.T) {
 		if !reflect.DeepEqual(omid, v.MidOrder) {
 			t.Fatalf("del-case-fail-midorder: %s, r: %v, c: %v", k, omid, v.MidOrder)
 		}
+
+		if err := CheckAVLTree(avlT); err != nil {
+			t.Fatal(k, err)
+		}
 	}
 
 	var randcase []int
-	for k := 0; k < 2000; k++ {
-		for j := 0; j < 200+k; j++ {
+	for k := 0; k < 1000; k++ {
+		for j := 0; j < 100; j++ {
 			tmp := rand.Intn(MaxInt)
 			found := false
 			for _, v := range randcase {
@@ -165,20 +155,56 @@ func TestAVLDelete(t *testing.T) {
 			}
 		}
 		avlT := MakeAVLTreeByInt(randcase)
-
+		if err := CheckAVLTree(avlT); err != nil {
+			t.Fatal(err)
+		}
+		ShuffleSliceInt(randcase)
 		//t.Logf("rand-avt:%v, %v\n", avlT.MidOrderPrint(), avlT.LevelOrderPrint())
 		//t.Logf("\n%s\n", avlT.PrettyPrint())
 		for i := len(randcase) - 1; i >= 0; i-- {
 			//t.Logf("del: %d\n", randcase[i])
-			//t.Logf("\n%s\n", avlT.PrettyPrint())
-			AVLDelete(&avlT, BTDInt(randcase[i]))
-			//t.Logf("\n%s\n", avlT.PrettyPrint())
+			//t.Logf("bf:\n%s\n", avlT.PrettyPrint())
+			avlT.AVLDelete(BTDInt(randcase[i]))
+			//t.Logf("af:\n%s\n", avlT.PrettyPrint())
 			//t.Logf("del: %5d, %v\n", randcase[i], avlT.MidOrderPrint())
+			if err := CheckAVLTree(avlT); err != nil {
+				t.Fatal(err)
+			}
 		}
-		if avlT != nil {
+		if avlT.root != nil {
 			t.Fatal("avl-del-fail: not empty tree")
 		}
 		randcase = randcase[0:0]
 	}
 
+}
+
+// o(logn) 可以根据N来绘图
+func BenchmarkAVLDelete(b *testing.B) {
+	b.StopTimer()
+	datas := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		datas = append(datas, i*2)
+	}
+	avlT := MakeAVLTreeByInt(datas)
+	ShuffleSliceInt(datas)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		avlT.AVLDelete(BTDInt(datas[i]))
+	}
+}
+
+// o(logn) 可以根据N来绘图
+func BenchmarkAVLInsert(b *testing.B) {
+	b.StopTimer()
+	datas := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		datas = append(datas, i*2)
+	}
+	ShuffleSliceInt(datas)
+	avlT := &BiTree{}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		avlT.AVLInsert(BTDInt(datas[i]))
+	}
 }
