@@ -1,7 +1,10 @@
 package dst
 
-import "testing"
-import "reflect"
+import (
+	"math/rand"
+	"reflect"
+	"testing"
+)
 
 var (
 
@@ -12,27 +15,6 @@ var (
 	//   3     8
 	//    \   /
 	//     5 7
-	testBSTree = &BTNode{
-		Data: BTDInt(10),
-		Lchild: &BTNode{
-			Data: BTDInt(6),
-			Lchild: &BTNode{
-				Data: BTDInt(3),
-				Rchild: &BTNode{
-					Data: BTDInt(5),
-				},
-			},
-			Rchild: &BTNode{
-				Data: BTDInt(8),
-				Lchild: &BTNode{
-					Data: BTDInt(7),
-				},
-			},
-		},
-		Rchild: &BTNode{
-			Data: BTDInt(18),
-		},
-	}
 	sortedList      = []BTSortDataer{BTDInt(3), BTDInt(5), BTDInt(6), BTDInt(7), BTDInt(8), BTDInt(10), BTDInt(18)}
 	sortedListDel7  = []BTSortDataer{BTDInt(3), BTDInt(5), BTDInt(6), BTDInt(8), BTDInt(10), BTDInt(18)}
 	sortedListDel5  = []BTSortDataer{BTDInt(3), BTDInt(6), BTDInt(7), BTDInt(8), BTDInt(10), BTDInt(18)}
@@ -44,38 +26,50 @@ var (
 	noSortList = []BTSortDataer{BTDInt(10), BTDInt(6), BTDInt(18), BTDInt(3), BTDInt(8), BTDInt(5), BTDInt(7)}
 )
 
+func TestCheckBSTree(t *testing.T) {
+	bst := MakeBSTree(noSortList)
+
+	if err := CheckBSTree(bst); err != nil {
+		t.Fatal(err)
+	}
+
+	bst.root.Rchild.Data = BTDInt(1)
+	if err := CheckBSTree(bst); err == nil {
+		t.Fatal("check non-bst tree fail")
+	} else {
+		t.Log(err)
+	}
+}
+
 func TestBSTSearch(t *testing.T) {
-	parent, ret := testBSTree.BSTSearch(BTDInt(3))
-	if ret == nil {
+	bst := MakeBSTree(noSortList)
+	node, ok := bst.BSTSearch(BTDInt(3))
+	if !ok {
 		t.Fatal("search 3 failed")
 	}
-	if int(ret.Data.(BTDInt)) != 3 {
+	if int(node.Data.(BTDInt)) != 3 {
 		t.Fatal("search ret != 3")
 	}
-	if int(parent.Data.(BTDInt)) != 6 {
+	if int(node.Parent.Data.(BTDInt)) != 6 {
 		t.Fatal("search ret  parent != 6")
 	}
 
-	parent, ret = testBSTree.BSTSearch(BTDInt(10))
-	t.Logf("ret: %p, %p, %p\n", parent, ret, testBSTree)
-	if ret == nil {
+	node, ok = bst.BSTSearch(BTDInt(10))
+	if !ok {
 		t.Fatal("search 10 failed")
 	}
-	if int(ret.Data.(BTDInt)) != 10 {
+	if int(node.Data.(BTDInt)) != 10 {
 		t.Fatal("search ret != 10")
 	}
-	if parent != ret {
-		t.Fatal("parent != ret")
-	}
 
-	parent, ret = testBSTree.BSTSearch(BTDInt(MaxInt))
-	t.Logf("ret: %p, %p, %p\n", parent, ret, testBSTree.Rchild)
-	if ret != nil {
+	node, ok = bst.BSTSearch(BTDInt(MaxInt))
+	if ok {
 		t.Fatal("search not exists value test failed")
 	}
-	if int(parent.Data.(BTDInt)) != 18 || parent != testBSTree.Rchild {
+	if int(node.Data.(BTDInt)) != 18 || node != bst.root.Rchild {
 		t.Fatal("search not exists value, parent node test failed")
 	}
+	t.Logf("\n%s\n", bst.PrettyPrint())
 }
 
 func TestBSTInsert(t *testing.T) {
@@ -90,6 +84,7 @@ func TestBSTDelete(t *testing.T) {
 
 	bst := MakeBSTree(noSortList)
 	t.Log("origin:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	// 删除不存在的节点
 	delNode := bst.BSTDelete(BTDInt(MaxInt))
@@ -111,6 +106,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel7)`)
 	}
 	t.Log("del7:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -122,11 +118,13 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel5)`)
 	}
 	t.Log("del5:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
 	// 删除有两个孩子的节点
 	delNode = bst.BSTDelete(BTDInt(6))
+	t.Logf("\n%s\n", bst.PrettyPrint())
 	if delNode == nil {
 		t.Fatal("delete node 6 fail")
 	}
@@ -146,6 +144,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel3)`)
 	}
 	t.Log("del3:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -157,6 +156,7 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel8)`)
 	}
 	t.Log("del8:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
 
 	bst = MakeBSTree(noSortList)
 
@@ -169,4 +169,44 @@ func TestBSTDelete(t *testing.T) {
 		t.Fatal(`!reflect.DeepEqual(bst.MidOrderPrint(), sortedListDel10)`)
 	}
 	t.Log("del10:", bst.MidOrderPrint())
+	t.Logf("\n%s\n", bst.PrettyPrint())
+}
+
+func TestBSTDeleteRand(t *testing.T) {
+	var randcase []BTSortDataer
+	for k := 0; k < 2000; k++ {
+		for j := 0; j < 100; j++ {
+			tmp := rand.Intn(MaxInt)
+			found := false
+			for _, v := range randcase {
+				if BTDInt(tmp) == v {
+					found = true
+					break
+				}
+			}
+			if !found {
+				randcase = append(randcase, BTDInt(tmp))
+			}
+		}
+		bst := MakeBSTree(randcase)
+		if err := CheckBSTree(bst); err != nil {
+			t.Fatalf("CheckBSTree failed: %v, %s\n", randcase, err)
+		}
+
+		ShuffleSliceBTData(randcase)
+
+		for i := len(randcase) - 1; i >= 0; i-- {
+			//fmt.Println("del: ", randcase[i], randcase)
+			//fmt.Printf("tbefore:\n%s\n", bst.PrettyPrint())
+			bst.BSTDelete(randcase[i])
+			//fmt.Printf("tafter:\n%s\n", bst.PrettyPrint())
+			if err := CheckBSTree(bst); err != nil {
+				t.Fatalf("del %v failed: bst not become binary-search-tree: %s\n", randcase[i], err)
+			}
+		}
+		if bst.root != nil {
+			t.Fatalf("bst-del-fail: not empty tree\n%s\n", bst.PrettyPrint())
+		}
+		randcase = randcase[0:0]
+	}
 }
