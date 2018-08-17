@@ -51,3 +51,14 @@ func TestBubbleSort(t *testing.T) {
 		}
 	}
 }
+
+func TestInsertionSort(t *testing.T) {
+	for k, v := range testCases {
+		t.Log(k, ":bf:", v)
+		InsertionSort(v)
+		t.Log(k, ":af:", v)
+		if !sort.IntsAreSorted(v) {
+			t.Fatal(v, "not sorted")
+		}
+	}
+}
