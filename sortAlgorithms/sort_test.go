@@ -40,3 +40,14 @@ func TestQuickSort(t *testing.T) {
 		}
 	}
 }
+
+func TestBubbleSort(t *testing.T) {
+	for k, v := range testCases {
+		t.Log(k, ":bf:", v)
+		BubbleSort(v)
+		t.Log(k, ":af:", v)
+		if !sort.IntsAreSorted(v) {
+			t.Fatal(v, "not sorted")
+		}
+	}
+}
