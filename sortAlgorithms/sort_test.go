@@ -62,3 +62,20 @@ func TestInsertionSort(t *testing.T) {
 		}
 	}
 }
+
+func Test_mergeTwoSortedArr(t *testing.T) {
+	data := []int{1, 3, 5, 7, 2, 4, 6, 8}
+	mergeTwoSortedArr(data, 4)
+	t.Log(data)
+}
+
+func TestMergeSort(t *testing.T) {
+	for k, v := range testCases {
+		t.Log(k, ":bf:", v)
+		MergeSort(v)
+		t.Log(k, ":af:", v)
+		if !sort.IntsAreSorted(v) {
+			t.Fatal(v, "not sorted")
+		}
+	}
+}
