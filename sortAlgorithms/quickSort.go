@@ -5,21 +5,18 @@ func QuickSort(data []int) {
 	if len(data) <= 1 {
 		return
 	}
-	mid := data[0]
-	i := 1
-	head := 0
+	pos := 0
 	tail := len(data) - 1
-	for i = 1; i <= tail; {
-		if data[i] > mid {
-			data[i], data[tail] = data[tail], data[i]
+	for pos < tail {
+		if data[0] < data[pos+1] {
+			data[pos+1], data[tail] = data[tail], data[pos+1]
 			tail--
 		} else {
-			data[i], data[head] = data[head], data[i]
-			head++
-			i++
+			pos++
 		}
 	}
-	data[head] = mid
-	QuickSort(data[:head])
-	QuickSort(data[head+1:])
+
+	data[0], data[pos] = data[pos], data[0]
+	QuickSort(data[:pos])
+	QuickSort(data[pos+1:])
 }

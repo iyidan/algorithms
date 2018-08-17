@@ -3,6 +3,7 @@ package sortAlgorithms
 import (
 	"math"
 	"math/rand"
+	"os"
 	"sort"
 	"testing"
 )
@@ -18,7 +19,7 @@ var testCases = [][]int{
 	{1, 1, 3, 8, 4, 9, 2, 3},
 }
 
-func init() {
+func TestMain(m *testing.M) {
 	for i := 0; i < 100; i++ {
 		rndcase := make([]int, 10)
 		for i := 0; i < len(rndcase); i++ {
@@ -26,10 +27,10 @@ func init() {
 		}
 		testCases = append(testCases, rndcase)
 	}
+	os.Exit(m.Run())
 }
 
 func TestQuickSort(t *testing.T) {
-
 	for k, v := range testCases {
 		t.Log(k, ":bf:", v)
 		QuickSort(v)
