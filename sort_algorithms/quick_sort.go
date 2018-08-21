@@ -1,4 +1,4 @@
-package sortAlgorithms
+package sort_algorithms
 
 // QuickSort 快速排序法 不稳定排序
 func QuickSort(data []int) {

@@ -1,4 +1,4 @@
-package sortAlgorithms
+package sort_algorithms
 
 import (
 	"math"
@@ -9,6 +9,7 @@ import (
 )
 
 var testCases = [][]int{
+	{},
 	{5, 4, 3, 2, 1},
 	{1, 2, 3, 4, 5},
 	{1, 3, 2, 4, 5},
@@ -73,6 +74,17 @@ func TestMergeSort(t *testing.T) {
 	for k, v := range testCases {
 		t.Log(k, ":bf:", v)
 		MergeSort(v)
+		t.Log(k, ":af:", v)
+		if !sort.IntsAreSorted(v) {
+			t.Fatal(v, "not sorted")
+		}
+	}
+}
+
+func TestHeapSort(t *testing.T) {
+	for k, v := range testCases {
+		t.Log(k, ":bf:", v)
+		HeapSort(v)
 		t.Log(k, ":af:", v)
 		if !sort.IntsAreSorted(v) {
 			t.Fatal(v, "not sorted")

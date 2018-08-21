@@ -1,4 +1,4 @@
-package sortAlgorithms
+package sort_algorithms
 
 // InsertionSort 插入排序 稳定排序
 func InsertionSort(data []int) {

@@ -1,4 +1,4 @@
-package sortAlgorithms
+package sort_algorithms
 
 // BubbleSort 冒泡排序，稳定排序
 func BubbleSort(data []int) {

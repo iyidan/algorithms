@@ -1,4 +1,4 @@
-package sortAlgorithms
+package sort_algorithms
 
 // max numbers
 const (
