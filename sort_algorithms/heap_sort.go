@@ -1,9 +1,5 @@
 package sort_algorithms
 
-import (
-	"fmt"
-)
-
 // 调整索引i的堆符合大顶堆性质
 func shiftDown(data []int, start, end int) {
 	swap := start
@@ -38,7 +34,6 @@ func heapAdjust(data []int, end int) {
 func HeapSort(data []int) {
 	end := len(data) - 1
 	heapAdjust(data, end)
-	fmt.Println(data)
 	for end > 0 {
 		data[0], data[end] = data[end], data[0]
 		end--
